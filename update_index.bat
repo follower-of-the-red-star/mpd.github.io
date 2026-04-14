@@ -6,29 +6,28 @@ set "DATA_FOLDER=data"
 
 if exist "%OUTPUT_FILE%" del "%OUTPUT_FILE%"
 
-:: Write opening line
-echo const FILE_INDEX = [ > "%OUTPUT_FILE%"
+:: Write the assignment to window object
+echo window.FILE_INDEX = [ > "%OUTPUT_FILE%"
 
 set first=1
-set "list="
+set "line="
+
 for %%F in ("%DATA_FOLDER%\*.txt") do (
     set "filename=%%~nxF"
     if !first!==1 (
-        set "list=!list!  "!filename!""
+        set "line=  "!filename!""
         set first=0
     ) else (
-        set "list=!list!, "!filename!""
+        set "line=!line!, "!filename!""
     )
 )
 
-:: Write the list
 if !first!==1 (
     echo   // No .txt files found >> "%OUTPUT_FILE%"
 ) else (
-    echo !list! >> "%OUTPUT_FILE%"
+    echo !line! >> "%OUTPUT_FILE%"
 )
 
-:: Write closing line
 echo ]; >> "%OUTPUT_FILE%"
 
 echo File index written to %OUTPUT_FILE%
