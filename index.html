@@ -581,12 +581,18 @@ async function boot() {
   await new Promise(r => setTimeout(r, 120));
   print('', 'blank');
   printDivider('═');
-  print('  ████████╗███████╗██████╗ ███╗   ███╗██╗███╗   ██╗██╗   ██╗███████╗', 'header-line');
-  print('  ╚══██╔══╝██╔════╝██╔══██╗████╗ ████║██║████╗  ██║██║   ██║██╔════╝', 'header-line');
-  print('     ██║   █████╗  ██████╔╝██╔████╔██║██║██╔██╗ ██║██║   ██║███████╗', 'header-line');
-  print('     ██║   ██╔══╝  ██╔══██╗██║╚██╔╝██║██║██║╚██╗██║██║   ██║╚════██║', 'header-line');
-  print('     ██║   ███████╗██║  ██║██║ ╚═╝ ██║██║██║ ╚████║╚██████╔╝███████║', 'header-line');
-  print('     ╚═╝   ╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝╚═╝╚═╝  ╚═══╝ ╚═════╝ ╚══════╝', 'header-line');
+  print('                                     __   ______    ______  
+  print('                                    ╱  │ ╱      ╲  ╱      ╲ ', 'header-line');
+  print('  ______   __    __   ______    ____$$ │╱$$$$$$  │╱$$$$$$  │', 'header-line');
+  print(' ╱      ╲ ╱  │  ╱  │ ╱      ╲  ╱    $$ │$$ │  $$ │$$ ╲__$$╱ ', 'header-line');
+  print('╱$$$$$$  │$$ │  $$ │ $$$$$$  │╱$$$$$$$ │$$ │  $$ │$$      ╲ ', 'header-line');
+  print('$$ │  $$ │$$ │  $$ │ ╱    $$ │$$ │  $$ │$$ │  $$ │ $$$$$$  │', 'header-line');
+  print('$$ ╲__$$ │$$ ╲__$$ │╱$$$$$$$ │$$ ╲__$$ │$$ ╲__$$ │╱  ╲__$$ │', 'header-line');
+  print('$$    $$ │$$    $$╱ $$    $$ │$$    $$ │$$    $$╱ $$    $$╱ ', 'header-line');
+  print(' $$$$$$$ │ $$$$$$╱   $$$$$$$╱  $$$$$$$╱  $$$$$$╱   $$$$$$╱  ', 'header-line');
+  print('      $$ │                                                  ', 'header-line');
+  print('      $$ │                                                  ', 'header-line');
+  print('      $$╱                                                   ', 'header-line');
   printDivider('═');
   printBlank();
   print(`  WELCOME, AGENT. ACCESSING CASE: ${currentFolder}`, 'info');
