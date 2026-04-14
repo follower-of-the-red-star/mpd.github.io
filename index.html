@@ -116,8 +116,18 @@
     #header .title { color: var(--green); font-size: 13px; letter-spacing: 3px; }
     #clock { font-size: 11px; }
 
-    #output {
+    /* Main content area with flex layout for left (text) and right (image) */
+    #content-area {
       flex: 1;
+      display: flex;
+      gap: 12px;
+      min-height: 0; /* allow flex child to shrink */
+      overflow: hidden;
+    }
+
+    /* Left side: output text */
+    #output {
+      flex: 2;
       overflow-y: auto;
       overflow-x: hidden;
       line-height: 1.6;
@@ -125,9 +135,42 @@
       text-shadow: 0 0 6px var(--green-glow);
     }
 
+    /* Right side: image panel (hidden by default) */
+    #image-panel {
+      flex: 1;
+      background: rgba(0, 0, 0, 0.6);
+      border-left: 1px solid var(--green-dim);
+      padding: 8px;
+      overflow-y: auto;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+    }
+
+    #image-panel img {
+      max-width: 100%;
+      max-height: 300px;
+      object-fit: contain;
+      border: 1px solid var(--green-dim);
+      box-shadow: 0 0 12px var(--green-glow);
+      margin-bottom: 8px;
+    }
+
+    #image-panel .image-caption {
+      font-size: 11px;
+      color: var(--green-dim);
+      text-align: center;
+      word-break: break-all;
+    }
+
     #output::-webkit-scrollbar { width: 6px; }
     #output::-webkit-scrollbar-track { background: transparent; }
     #output::-webkit-scrollbar-thumb { background: var(--green-dark); border-radius: 3px; }
+
+    #image-panel::-webkit-scrollbar { width: 4px; }
+    #image-panel::-webkit-scrollbar-track { background: transparent; }
+    #image-panel::-webkit-scrollbar-thumb { background: var(--green-dark); border-radius: 2px; }
 
     .line { white-space: pre-wrap; word-break: break-word; }
     .line.system { color: var(--green-dim); }
@@ -189,7 +232,6 @@
       z-index: 20;
     }
   </style>
-  <!-- Dynamically generated file index (created by update_index.bat) -->
   <script src="file-index.js"></script>
 </head>
 <body>
@@ -201,7 +243,10 @@
         <span id="clock">--:--:--</span>
         <span>SESSION ACTIVE</span>
       </div>
-      <div id="output"></div>
+      <div id="content-area">
+        <div id="output"></div>
+        <div id="image-panel"></div>
+      </div>
       <div id="input-row">
         <span id="prompt-label">C:\&gt;</span>
         <input id="input" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" autofocus />
@@ -215,8 +260,7 @@
 // ─── CONFIGURATION ──────────────────────────────────────────────────────────
 const DATA_DIR = 'data/';
 
-// Use the global FILE_INDEX set by file-index.js, or create an empty fallback.
-// No 'var', 'let', or 'const' – we're just ensuring the variable exists.
+// Global file index (from file-index.js)
 if (typeof window.FILE_INDEX === 'undefined') {
   window.FILE_INDEX = [];
   console.warn("file-index.js not loaded – using empty array. Run update_index.bat to generate it.");
@@ -224,12 +268,15 @@ if (typeof window.FILE_INDEX === 'undefined') {
 
 const PROMPT = 'C:\\>';
 
-// ─── OUTPUT HELPERS ──────────────────────────────────────────────────────────
+// DOM elements
 const output = document.getElementById('output');
-const input  = document.getElementById('input');
+const input = document.getElementById('input');
 const promptLabel = document.getElementById('prompt-label');
+const imagePanel = document.getElementById('image-panel');
+
 promptLabel.textContent = PROMPT;
 
+// ─── HELPERS ────────────────────────────────────────────────────────────────
 function updateClock() {
   const now = new Date();
   const t = [now.getHours(), now.getMinutes(), now.getSeconds()]
@@ -266,7 +313,52 @@ function printDivider(char = '─', len = 58) {
   print(char.repeat(len), 'header-line');
 }
 
-// ─── FILE LOADER (pure fetch, no embedded data) ───────────────────────────
+// Clear the image panel and hide it
+function clearImage() {
+  imagePanel.innerHTML = '';
+  imagePanel.style.display = 'none';
+}
+
+// Show an image from URL
+function showImage(url, altText = '') {
+  clearImage();
+  const img = document.createElement('img');
+  img.src = url;
+  img.alt = altText || 'Embedded image';
+  img.onerror = () => {
+    imagePanel.innerHTML = '<div class="error">[Image failed to load]</div>';
+    imagePanel.style.display = 'flex';
+  };
+  const caption = document.createElement('div');
+  caption.className = 'image-caption';
+  caption.textContent = url.length > 60 ? url.substring(0, 57) + '...' : url;
+  imagePanel.appendChild(img);
+  imagePanel.appendChild(caption);
+  imagePanel.style.display = 'flex';
+}
+
+// Parse first line for image URL
+// Supported formats:
+// - Plain URL ending with .jpg/.jpeg/.png/.gif/.webp
+// - Markdown: ![alt](url)
+// - Custom: IMG:url
+function extractImageUrl(firstLine) {
+  // Trim and check
+  const line = firstLine.trim();
+  // Markdown pattern
+  const mdMatch = line.match(/!\[.*?\]\((https?:\/\/[^\s)]+)\)/);
+  if (mdMatch) return mdMatch[1];
+  // Custom IMG: prefix
+  if (line.toLowerCase().startsWith('img:')) {
+    return line.substring(4).trim();
+  }
+  // Plain URL with image extension
+  const urlMatch = line.match(/^(https?:\/\/[^\s]+\.(jpg|jpeg|png|gif|webp)(\?.*)?)$/i);
+  if (urlMatch) return urlMatch[1];
+  return null;
+}
+
+// ─── FILE LOADER (no embedded data) ────────────────────────────────────────
 async function loadFileContent(filename) {
   try {
     const response = await fetch(DATA_DIR + filename);
@@ -281,7 +373,7 @@ async function loadFileContent(filename) {
   }
 }
 
-// ─── BOOT SEQUENCE ───────────────────────────────────────────────────────────
+// ─── BOOT SEQUENCE ─────────────────────────────────────────────────────────
 async function boot() {
   input.disabled = true;
 
@@ -322,7 +414,7 @@ async function boot() {
 
 function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
 
-// ─── COMMANDS ────────────────────────────────────────────────────────────────
+// ─── COMMANDS ──────────────────────────────────────────────────────────────
 const commands = {
 
   help: async () => {
@@ -335,7 +427,7 @@ const commands = {
       printDivider('─');
       printBlank();
     } else {
-      // Built-in fallback help (no campaign data)
+      // Built-in fallback help
       printBlank();
       print('AVAILABLE COMMANDS', 'header-line');
       printDivider();
@@ -349,6 +441,10 @@ const commands = {
       printBlank();
       print('  Files can be read without the .txt extension.', 'system');
       print('  Example:  READ tavern   →   reads data/tavern.txt', 'system');
+      printBlank();
+      print('  IMAGE SUPPORT: If first line of a .txt file contains an image URL', 'info');
+      print('  (plain URL ending with .jpg/.png, or ![alt](url), or IMG:url),', 'info');
+      print('  the image will appear in the right panel.', 'info');
       printBlank();
       print('NOTE: help.txt not found in data folder. Create it for custom help.', 'system');
       printBlank();
@@ -394,20 +490,54 @@ const commands = {
     print(`Loading ${name} ...`, 'system');
     const result = await loadFileContent(name);
     if (result.success) {
+      // Split content into lines
+      const allLines = result.content.split(/\r?\n/);
+      let imageUrl = null;
+      let contentLines = allLines;
+
+      // Check first non-empty line for image URL
+      if (allLines.length > 0) {
+        const firstLine = allLines[0];
+        imageUrl = extractImageUrl(firstLine);
+        if (imageUrl) {
+          // Remove the first line from displayed content
+          contentLines = allLines.slice(1);
+          // Also remove any following empty line that might be just a blank after the URL
+          if (contentLines.length > 0 && contentLines[0].trim() === '') {
+            contentLines = contentLines.slice(1);
+          }
+        }
+      }
+
+      // Clear previous image and show new one if any
+      if (imageUrl) {
+        showImage(imageUrl, name);
+      } else {
+        clearImage();
+      }
+
+      // Display the content (skip image line)
       printBlank();
       printDivider('─');
-      const lines = result.content.split('\n');
-      await printSlow(lines, 'file-content', 12);
+      if (contentLines.length === 0 && imageUrl) {
+        print('[Image only – no additional text]', 'system');
+      } else if (contentLines.length === 0 && !imageUrl) {
+        print('[Empty file]', 'system');
+      } else {
+        await printSlow(contentLines, 'file-content', 12);
+      }
       printDivider('─');
       printBlank();
     } else {
       print(`Error: ${result.error}`, 'error');
       print(`Make sure ${DATA_DIR}${name} exists.`, 'system');
+      clearImage();
     }
   },
 
   cls: async () => {
     output.innerHTML = '';
+    clearImage();
   },
 
   echo: async (args) => {
@@ -434,7 +564,7 @@ commands.type = commands.read;
 commands.clear = commands.cls;
 commands.ls = commands.dir;
 
-// ─── INPUT HANDLER ───────────────────────────────────────────────────────────
+// ─── INPUT HANDLER ─────────────────────────────────────────────────────────
 const history = [];
 let histIdx = -1;
 
