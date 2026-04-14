@@ -215,9 +215,10 @@
 // ─── CONFIGURATION ──────────────────────────────────────────────────────────
 const DATA_DIR = 'data/';
 
-// Use the global FILE_INDEX from file-index.js (or fallback to empty array)
-if (typeof FILE_INDEX === 'undefined') {
-  var FILE_INDEX = [];
+// Use the global FILE_INDEX set by file-index.js, or create an empty fallback.
+// No 'var', 'let', or 'const' – we're just ensuring the variable exists.
+if (typeof window.FILE_INDEX === 'undefined') {
+  window.FILE_INDEX = [];
   console.warn("file-index.js not loaded – using empty array. Run update_index.bat to generate it.");
 }
 
@@ -265,7 +266,7 @@ function printDivider(char = '─', len = 58) {
   print(char.repeat(len), 'header-line');
 }
 
-// ─── FILE LOADER (no embedded data – pure fetch) ───────────────────────────
+// ─── FILE LOADER (pure fetch, no embedded data) ───────────────────────────
 async function loadFileContent(filename) {
   try {
     const response = await fetch(DATA_DIR + filename);
@@ -310,7 +311,7 @@ async function boot() {
   printBlank();
   print('  CAMPAIGN INFORMATION RETRIEVAL SYSTEM', 'info');
   print('  Type HELP for available commands.', 'system');
-  if (FILE_INDEX.length === 0) {
+  if (window.FILE_INDEX.length === 0) {
     print('  WARNING: No files in index. Run update_index.bat to generate file list.', 'error');
   }
   printBlank();
@@ -325,7 +326,6 @@ function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
 const commands = {
 
   help: async () => {
-    // Try to load help.txt from data folder
     const result = await loadFileContent('help.txt');
     if (result.success) {
       printBlank();
@@ -361,19 +361,19 @@ const commands = {
     print(' Directory of C:\\DATA', 'system');
     printBlank();
     printDivider();
-    if (FILE_INDEX.length === 0) {
+    if (window.FILE_INDEX.length === 0) {
       print('  (no files found — run update_index.bat to generate file list)', 'error');
     } else {
       const now = new Date();
       const dateStr = [now.getDate(), now.getMonth()+1, now.getFullYear()]
         .map(n=>String(n).padStart(2,'0')).join('-');
-      for (const f of FILE_INDEX) {
+      for (const f of window.FILE_INDEX) {
         const name = f.padEnd(24);
         print(`  ${name}  <TXT>    ${dateStr}`, 'file-content');
       }
     }
     printDivider();
-    print(`  ${FILE_INDEX.length} file(s) in index.`, 'system');
+    print(`  ${window.FILE_INDEX.length} file(s) in index.`, 'system');
     printBlank();
   },
 
@@ -385,7 +385,7 @@ const commands = {
     let name = args.join(' ').trim();
     if (!name.endsWith('.txt')) name += '.txt';
 
-    if (!FILE_INDEX.includes(name)) {
+    if (!window.FILE_INDEX.includes(name)) {
       print(`File not found: ${name}`, 'error');
       print(`Use DIR to see available files.`, 'system');
       return;
