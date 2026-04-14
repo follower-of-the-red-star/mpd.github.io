@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>TERMINUS v2.3 — Secure Terminal</title>
+  <title>quadOS v2.3 — Secure Terminal</title>
   <style>
     /* === Your existing CSS – unchanged === */
     @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
@@ -594,7 +594,7 @@ const commands = {
 
   dir: async () => {
     printBlank();
-    print(` Volume in drive C is TERMINUS (${currentFolder})`, 'system');
+    print(` Volume in drive C is quadOS (${currentFolder})`, 'system');
     print(` Directory of C:\\${currentFolder}`, 'system');
     printBlank();
     printDivider('-');
@@ -673,7 +673,7 @@ const commands = {
   },
 
   ver: async () => {
-    const fallbackVersion = `TERMINUS v2.3 - Secure Campaign Terminal
+    const fallbackVersion = `quadOS v2.3 - Secure Campaign Terminal
 Multi-user credential system
 (c) 1988 OBSCURA SYSTEMS INC.`;
     try {
@@ -814,9 +814,9 @@ $$    $$ |$$    $$/ $$    $$ |$$    $$ |$$    $$/ $$    $$/
       $$/                                                  
 `;
 
-const FALLBACK_OS = `TERMINUS BIOS v2.3  (C) 1988 OBSCURA SYSTEMS INC.
+const FALLBACK_OS = `quadOS BIOS v2.3  (C) 1988 OBSCURA SYSTEMS INC.
 Memory Test: 640K OK
-Loading TERMINUS.SYS ...
+Loading quadOS.SYS ...
 Mounting secure partition:`;
 
 async function boot() {
