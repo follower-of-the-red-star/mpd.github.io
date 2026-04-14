@@ -525,17 +525,29 @@ async function notifyUserOnLogin() {
   }
 }
 
-// ─── PLAY JINGLE (once) after login ───────────────────────────────────────
+// ─── PLAY JINGLE (with terminal feedback) ─────────────────────────────────
 function playJingle() {
+  print("[*] Attempting to play JINGLE.ogg...", 'system');
   if (audioElement) {
     audioElement.pause();
     audioElement = null;
   }
   audioElement = new Audio('JINGLE.ogg');
   audioElement.loop = false;
+  
+  // Optional: add an event listener to confirm when it actually starts
+  audioElement.addEventListener('canplaythrough', () => {
+    print("[✓] JINGLE.ogg loaded and ready to play.", 'system');
+  });
+  audioElement.addEventListener('play', () => {
+    print("[♪] Jingle is now playing.", 'system');
+  });
+  audioElement.addEventListener('error', (e) => {
+    print(`[✗] Failed to play JINGLE.ogg: ${audioElement.error ? audioElement.error.message : 'File not found or unsupported format'}`, 'error');
+  });
+  
   audioElement.play().catch(e => {
-    console.warn("Jingle autoplay blocked:", e);
-    print("[!] Could not play JINGLE.ogg – browser may require user interaction first.", 'error');
+    print(`[!] Could not play JINGLE.ogg – ${e.message}. Browsers often block autoplay until user interaction.`, 'error');
   });
 }
 
