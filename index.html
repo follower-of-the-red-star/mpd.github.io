@@ -323,7 +323,7 @@
   <div id="monitor">
     <div id="screen">
       <div id="header">
-        <span class="title">◈ quadOS SMT</span>
+        <span class="title">◈ TERMINUS v2.3</span>
         <span id="clock">--:--:--</span>
         <span id="cred-badge"></span>
         <span>SECURE TERMINAL</span>
@@ -361,7 +361,19 @@ const promptLabel = document.getElementById('prompt-label');
 const imagePanel = document.getElementById('image-panel');
 const credBadge = document.getElementById('cred-badge');
 
-// ─── HELPER FUNCTIONS ─────────────────────────────────────────────────────
+// ─── CLOCK: set initial time immediately ──────────────────────────────────
+function updateClock() {
+  const now = new Date();
+  const t = [now.getHours(), now.getMinutes(), now.getSeconds()]
+    .map(n => String(n).padStart(2,'0')).join(':');
+  document.getElementById('clock').textContent = t;
+}
+// Call once right away to replace the placeholder
+updateClock();
+// Then update every second
+setInterval(updateClock, 1000);
+
+// ─── HELPER FUNCTIONS (unchanged) ─────────────────────────────────────────
 function print(text, cls = '') {
   const div = document.createElement('div');
   div.className = 'line' + (cls ? ' ' + cls : '');
@@ -483,7 +495,7 @@ async function loadFileContent(filename) {
   }
 }
 
-// ─── COMMANDS (only 'ver' changed to use .txt) ────────────────────────────
+// ─── COMMANDS (unchanged) ─────────────────────────────────────────────────
 const commands = {
   help: async () => {
     printBlank();
@@ -570,7 +582,6 @@ const commands = {
     print(args.join(' '), 'file-content');
   },
 
-  // VER command now loads VER.txt (instead of VER.html)
   ver: async () => {
     const fallbackVersion = `TERMINUS v2.3 — Secure Campaign Terminal
 Multi‑user credential system
@@ -589,7 +600,6 @@ Multi‑user credential system
         throw new Error('not found');
       }
     } catch (e) {
-      // Fallback
       printBlank();
       print(fallbackVersion, 'header-line');
       printBlank();
@@ -631,7 +641,7 @@ function showCredentialModal() {
     modal.className = 'modal';
     modal.innerHTML = `
       <div class="modal-content">
-        <p>INPUT CREDENTIAL CODE</p>
+        <p>🔐 INPUT CREDENTIAL CODE</p>
         <input type="text" id="cred-input" autocomplete="off" autofocus />
         <br />
         <button id="cred-submit">AUTHENTICATE</button>
@@ -665,7 +675,7 @@ function showCredentialModal() {
   });
 }
 
-// ─── LOAD EXTERNAL FILES (now .txt) ───────────────────────────────────────
+// ─── LOAD EXTERNAL LOGO & OS (using .txt) ─────────────────────────────────
 async function fetchExternalFile(url, fallbackContent) {
   try {
     const response = await fetch(url);
