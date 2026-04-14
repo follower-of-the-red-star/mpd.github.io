@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>TERMINUS v2.3 — Secure Terminal</title>
   <style>
+    /* === Your existing CSS – unchanged === */
     @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -382,7 +383,7 @@ function printDivider(char = '─', len = 58) {
   print(char.repeat(len), 'header-line');
 }
 
-// ─── IMAGE CAROUSEL ────────────────────────────────────────────────────────
+// ─── IMAGE CAROUSEL (unchanged) ───────────────────────────────────────────
 let currentImageIndex = 0;
 let currentImageList = [];
 
@@ -395,7 +396,6 @@ function clearImagePanel() {
 
 function updateImageCarousel() {
   if (!imagePanel || currentImageList.length === 0) return;
-  // Rebuild panel content
   imagePanel.innerHTML = '';
   const container = document.createElement('div');
   container.id = 'image-container';
@@ -446,34 +446,30 @@ function showImageCarousel(imageUrls) {
   updateImageCarousel();
 }
 
-// ─── PARSE FILE: extract images (lines until first empty line) ────────────
+// ─── PARSE FILE: extract images until empty line ──────────────────────────
 function parseFileContent(content) {
   const lines = content.split(/\r?\n/);
   const imageUrls = [];
   let i = 0;
-  // Collect image URLs from top until we hit an empty line
   while (i < lines.length) {
     const line = lines[i].trim();
     if (line === '') {
-      i++; // skip the empty line separator
+      i++;
       break;
     }
-    // Check if line looks like an image URL
     const urlMatch = line.match(/^(https?:\/\/[^\s]+\.(jpg|jpeg|png|gif|webp)(\?.*)?)$/i);
     if (urlMatch) {
       imageUrls.push(urlMatch[1]);
     } else {
-      // Not a URL – stop collecting images (treat as part of text)
       break;
     }
     i++;
   }
-  // The rest of the lines are the main text (if any)
   const textLines = lines.slice(i);
   return { imageUrls, textLines };
 }
 
-// ─── FILE LOADER (unchanged) ──────────────────────────────────────────────
+// ─── FILE LOADER ──────────────────────────────────────────────────────────
 async function loadFileContent(filename) {
   try {
     const response = await fetch(`${currentFolder}/${filename}`);
@@ -487,7 +483,7 @@ async function loadFileContent(filename) {
   }
 }
 
-// ─── COMMANDS (only 'read' modified) ──────────────────────────────────────
+// ─── COMMANDS (only 'ver' is changed) ─────────────────────────────────────
 const commands = {
   help: async () => {
     printBlank();
@@ -499,7 +495,7 @@ const commands = {
     print('  TYPE <file>       — Alias for READ', 'info');
     print('  CLS               — Clear screen', 'info');
     print('  ECHO <text>       — Print text', 'info');
-    print('  VER               — Version info', 'info');
+    print('  VER               — Version info (loads VER.html)', 'info');
     print('  LOGIN <code>      — Switch to another credential', 'info');
     printBlank();
     print(`Current folder: ${currentFolder}`, 'system');
@@ -543,13 +539,11 @@ const commands = {
     const result = await loadFileContent(name);
     if (result.success) {
       const { imageUrls, textLines } = parseFileContent(result.content);
-      // Show carousel if any images found
       if (imageUrls.length > 0) {
         showImageCarousel(imageUrls);
       } else {
         clearImagePanel();
       }
-      // Display text content
       printBlank();
       printDivider('─');
       if (textLines.length === 0 && imageUrls.length === 0) {
@@ -576,11 +570,31 @@ const commands = {
     print(args.join(' '), 'file-content');
   },
 
+  // ─── VER command now loads from VER.html ───────────────────────────────
   ver: async () => {
-    printBlank();
-    print('TERMINUS v2.3 — Secure Campaign Terminal', 'header-line');
-    print('Multi‑user credential system', 'system');
-    printBlank();
+    const fallbackVersion = `TERMINUS v2.3 — Secure Campaign Terminal
+Multi‑user credential system
+© 1988 OBSCURA SYSTEMS INC.`;
+    try {
+      const response = await fetch('VER.html');
+      if (response.ok) {
+        const content = await response.text();
+        const lines = content.split(/\r?\n/).filter(l => l.trim().length > 0);
+        printBlank();
+        for (const line of lines) {
+          print(line, 'header-line');
+        }
+        printBlank();
+      } else {
+        throw new Error('not found');
+      }
+    } catch (e) {
+      // Fallback
+      printBlank();
+      print(fallbackVersion, 'header-line');
+      printBlank();
+      print('(VER.html not found – using built‑in version info)', 'system');
+    }
   },
 
   login: async (args) => {
@@ -610,7 +624,7 @@ commands.type = commands.read;
 commands.clear = commands.cls;
 commands.ls = commands.dir;
 
-// ─── CREDENTIAL MODAL (unchanged) ─────────────────────────────────────────
+// ─── CREDENTIAL MODAL ─────────────────────────────────────────────────────
 function showCredentialModal() {
   return new Promise((resolve) => {
     const modal = document.createElement('div');
@@ -651,7 +665,7 @@ function showCredentialModal() {
   });
 }
 
-// ─── LOAD EXTERNAL LOGO & OS (unchanged) ───────────────────────────────────
+// ─── LOAD EXTERNAL LOGO & OS (unchanged) ──────────────────────────────────
 async function fetchExternalFile(url, fallbackContent) {
   try {
     const response = await fetch(url);
