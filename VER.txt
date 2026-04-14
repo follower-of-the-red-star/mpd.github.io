@@ -1,4 +1,3 @@
-TERMINUS v2.3 — Secure Campaign Terminal
-Custom build for The Chestnut Man case
-Firmware: OBSCURA-DOS 6.22
+Firmware: quadOS 3.4
+Built for Molerat Police Department
 Last update: 2026-04-14
