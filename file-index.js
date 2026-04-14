@@ -1,3 +1,3 @@
 window.FILE_INDEX = [ 
-  "welcome - Copy (2).txt", "welcome - Copy.txt", "welcome.txt" 
+  "test1.txt", "welcome.txt" 
 ]; 
