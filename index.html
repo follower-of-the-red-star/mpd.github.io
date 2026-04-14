@@ -483,7 +483,7 @@ async function loadFileContent(filename) {
   }
 }
 
-// ─── COMMANDS (only 'ver' is changed) ─────────────────────────────────────
+// ─── COMMANDS (only 'ver' changed to use .txt) ────────────────────────────
 const commands = {
   help: async () => {
     printBlank();
@@ -495,7 +495,7 @@ const commands = {
     print('  TYPE <file>       — Alias for READ', 'info');
     print('  CLS               — Clear screen', 'info');
     print('  ECHO <text>       — Print text', 'info');
-    print('  VER               — Version info (loads VER.html)', 'info');
+    print('  VER               — Version info (loads VER.txt)', 'info');
     print('  LOGIN <code>      — Switch to another credential', 'info');
     printBlank();
     print(`Current folder: ${currentFolder}`, 'system');
@@ -570,13 +570,13 @@ const commands = {
     print(args.join(' '), 'file-content');
   },
 
-  // ─── VER command now loads from VER.html ───────────────────────────────
+  // VER command now loads VER.txt (instead of VER.html)
   ver: async () => {
     const fallbackVersion = `TERMINUS v2.3 — Secure Campaign Terminal
 Multi‑user credential system
 © 1988 OBSCURA SYSTEMS INC.`;
     try {
-      const response = await fetch('VER.html');
+      const response = await fetch('VER.txt');
       if (response.ok) {
         const content = await response.text();
         const lines = content.split(/\r?\n/).filter(l => l.trim().length > 0);
@@ -593,7 +593,7 @@ Multi‑user credential system
       printBlank();
       print(fallbackVersion, 'header-line');
       printBlank();
-      print('(VER.html not found – using built‑in version info)', 'system');
+      print('(VER.txt not found – using built‑in version info)', 'system');
     }
   },
 
@@ -665,7 +665,7 @@ function showCredentialModal() {
   });
 }
 
-// ─── LOAD EXTERNAL LOGO & OS (unchanged) ──────────────────────────────────
+// ─── LOAD EXTERNAL FILES (now .txt) ───────────────────────────────────────
 async function fetchExternalFile(url, fallbackContent) {
   try {
     const response = await fetch(url);
@@ -705,8 +705,8 @@ async function boot() {
   input.disabled = false;
   input.focus();
 
-  const logoText = await fetchExternalFile('LOGO.html', FALLBACK_LOGO);
-  const osText = await fetchExternalFile('OS.html', FALLBACK_OS);
+  const logoText = await fetchExternalFile('LOGO.txt', FALLBACK_LOGO);
+  const osText = await fetchExternalFile('OS.txt', FALLBACK_OS);
 
   const osLines = osText.split(/\r?\n/).filter(line => line.trim().length > 0);
   for (let i = 0; i < osLines.length; i++) {
